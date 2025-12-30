@@ -4,40 +4,84 @@ let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
 
+/* TAREA 6 — Register */
+public_users.post("/register", (req, res) => {
+  const { username, password } = req.body;
 
-public_users.post("/register", (req,res) => {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+  if (!username || !password) {
+    return res.status(400).json({ message: "Username and password required" });
+  }
+
+  if (isValid(username)) {
+    return res.status(409).json({ message: "User already exists" });
+  }
+
+  users.push({ username, password });
+  return res.status(200).json({ message: "User registered successfully" });
 });
 
-// Get the book list available in the shop
-public_users.get('/',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+/* TAREA 1 + 10 — Get all books (Async) */
+public_users.get('/', async (req, res) => {
+  try {
+    return res.status(200).json(JSON.stringify(books, null, 2));
+  } catch (err) {
+    return res.status(500).json({ message: "Error fetching books" });
+  }
 });
 
-// Get book details based on ISBN
-public_users.get('/isbn/:isbn',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
- });
-  
-// Get book details based on author
-public_users.get('/author/:author',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+/* TAREA 2 + 11 — Get book by ISBN */
+public_users.get('/isbn/:isbn', async (req, res) => {
+  const isbn = req.params.isbn;
+  const book = books[isbn];
+
+  if (book) {
+    return res.status(200).json(book);
+  }
+  return res.status(404).json({ message: "Book not found" });
 });
 
-// Get all books based on title
-public_users.get('/title/:title',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+/* TAREA 3 + 12 — Get book by Author */
+public_users.get('/author/:author', async (req, res) => {
+  const author = req.params.author.toLowerCase();
+  let result = [];
+
+  Object.keys(books).forEach((key) => {
+    if (books[key].author.toLowerCase() === author) {
+      result.push(books[key]);
+    }
+  });
+
+  if (result.length > 0) {
+    return res.status(200).json(result);
+  }
+  return res.status(404).json({ message: "No books found for this author" });
 });
 
-//  Get book review
-public_users.get('/review/:isbn',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+/* TAREA 4 + 13 — Get book by Title */
+public_users.get('/title/:title', async (req, res) => {
+  const title = req.params.title.toLowerCase();
+  let result = [];
+
+  Object.keys(books).forEach((key) => {
+    if (books[key].title.toLowerCase() === title) {
+      result.push(books[key]);
+    }
+  });
+
+  if (result.length > 0) {
+    return res.status(200).json(result);
+  }
+  return res.status(404).json({ message: "No books found with this title" });
+});
+
+/* TAREA 5 — Get book review */
+public_users.get('/review/:isbn', (req, res) => {
+  const isbn = req.params.isbn;
+
+  if (books[isbn]) {
+    return res.status(200).json(books[isbn].reviews);
+  }
+  return res.status(404).json({ message: "Book not found" });
 });
 
 module.exports.general = public_users;
